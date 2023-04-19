@@ -1,16 +1,7 @@
-import time
 import tkinter as tk
 from PIL import ImageTk, Image
-import pyautogui
 from mss import mss
-import ctypes
-import keyboard
-
-
-def take_screenshot():
-    screen_capture = ScreenCapture()
-    screen_capture.mainloop()
-
+import io
 
 class ScreenCapture(tk.Tk):
     def __init__(self):
@@ -42,8 +33,6 @@ class ScreenCapture(tk.Tk):
         self.canvas.bind('<ButtonRelease-1>', self.on_release)
 
         self.update()
-        ctypes.windll.user32.SetForegroundWindow(self.winfo_id())
-
 
     def on_click(self, event):
         self.start_x, self.start_y = event.x, event.y
@@ -58,14 +47,18 @@ class ScreenCapture(tk.Tk):
         self.attributes('-alpha', 0)
         self.update()
 
-        bbox = (self.start_x, self.start_y, self.end_x, self.end_y)
-        cropped_image = self.full_screenshot.crop(bbox)
+        self.bbox = (self.start_x, self.start_y, self.end_x, self.end_y)
+        cropped_image = self.full_screenshot.crop(self.bbox)
+        self.top_left_coords = (self.start_x, self.start_y)
+
+        # Save the cropped image as bytes
+        image_bytes = io.BytesIO()
+        cropped_image.save(image_bytes, format='PNG')
+        self.cropped_image_bytes = image_bytes.getvalue()
 
         self.destroy()
-        cropped_image.show()
 
-
-keyboard.add_hotkey('ctrl+shift+s', take_screenshot)
-
-# Wait for events
-keyboard.wait()
+def take_screenshot():
+    screen_capture = ScreenCapture()
+    screen_capture.mainloop()
+    return screen_capture.cropped_image_bytes, screen_capture.top_left_coords

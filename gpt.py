@@ -23,7 +23,7 @@ def get_words_after_dash(input_string):
 
 def generate_response(string):
         history = []
-        request_string =  string
+        request_string = start_string + string + "\"\n"
         print(request_string)
         history.append({"role": "user", "content": request_string})
         completion = openai.ChatCompletion.create(
